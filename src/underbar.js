@@ -220,34 +220,33 @@
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
     if (accumulator === undefined){
+      for (var i = 0; i < collection.length; i++){
+          var result = iterator(accumulator, collection[i]);
+          if (result !== undefined && !isNaN(result)){
 
-  for (var i = 0; i < collection.length; i++){
-      var result = iterator(accumulator, collection[i]);
-      if (result !== undefined && !isNaN(result)){
+          //Found a starting accumulator:
+            for(var z = i + 1; z < collection.length; z++){
+              var iteration = iterator(result, collection[z]);
 
-      //Found a starting accumulator:
-        for(var z = i + 1; z < collection.length; z++){
-          var iteration = iterator(result, collection[z]);
-
-          if (iteration !== undefined){
-          result = iteration;
+              if (iteration !== undefined){
+              result = iteration;
+              }
+            } 
+            } else if (result === undefined || isNaN(result)){
+              // console.log("Iterator not found: ")
+              
+              result = collection[i];
+              for(var z = i + 1; z < collection.length; z++){
+              var iteration = iterator(result, collection[z]);
+              // console.log('Iteration: ');
+              // console.log(iteration);
+              if (iteration !== undefined){
+              result = iteration;
+              }
+            } 
           }
-        } 
-        } else if (result === undefined || isNaN(result)){
-          console.log("Iterator not found: ")
-          
-          result = collection[i];
-          for(var z = i + 1; z < collection.length; z++){
-          var iteration = iterator(result, collection[z]);
-          console.log('Iteration: ');
-          console.log(iteration);
-          if (iteration !== undefined){
-          result = iteration;
+           return result;
           }
-        } 
-      }
-       return result;
-      }
     } else {
         var result = accumulator;
         // Each item in array:
@@ -266,9 +265,21 @@
   _.contains = function(collection, target) {
     // TIP: Many iteration problems can be most easily expressed in
     // terms of reduce(). Here's a freebie to demonstrate!
+    if (collection.constructor === Object){
+      var newCol = [];
+      for (var key in collection){
+        newCol.push(collection[key]);
+      }
+      collection = newCol;
+    }
     return _.reduce(collection, function(wasFound, item) {
       if (wasFound) {
         return true;
+      }
+      for (var key in collection){
+        if (collection[key] === target){
+          return true;
+        }
       }
       return item === target;
     }, false);
@@ -278,12 +289,63 @@
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
+    if (iterator === undefined){
+      iterator = _.identity;
+      }
+
+    if (collection.constructor === Object){
+      var newCol = [];
+      for (var key in collection){
+        newCol.push(collection[key]);
+      }
+      collection = newCol;
+    }
+
+    if (collection.length === 0){
+       return true;
+      } else{ 
+         var boo = _.reduce(collection, function(accumulator, item) {
+          //  console.log('Gets to reducer - iterator of item: ');
+          //  console.log(iterator(item));
+              if (Boolean(iterator(item)) === false){
+          //      console.log(accumulator);
+                return false;
+              }
+
+              if (Boolean(iterator(item)) === true){
+                accumulator = true;
+              }
+            //  return accumulator;
+      }, true);
+         console.log(boo);
+        return Boolean(boo);
+    }
   };
+
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+      if (iterator === undefined){
+      iterator = _.identity;
+      }
+      if (collection.length === 0){
+        return false;
+      } else if (_.every(collection, iterator)){
+        return true;
+      } else if(Boolean(_.every(collection, iterator)) === false){        
+        var newCol = _.filter(collection, iterator); 
+//        console.log('Filtered: ');
+//        console.log(newCol);
+        if (newCol.length === 0){
+          return false;
+        } else { 
+        return _.every(newCol, iterator);
+        }
+      } else {
+        return true;
+      }
   };
 
 
@@ -306,11 +368,25 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    for (var i = 1; i < arguments.length+1; i++){
+      for (var key in arguments[i]){
+        arguments[0][key] = arguments[i][key];
+      }
+    }
+    return arguments[0];
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+      for (var i = 1; i < arguments.length+1; i++){
+            for (var key in arguments[i]){
+              if (!arguments[0].hasOwnProperty(key))
+              arguments[0][key] = arguments[i][key];
+            }
+          }
+          return arguments[0];
+
   };
 
 
@@ -354,7 +430,60 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
-  };
+    
+
+   var alreadyCalled = false;
+   var result;
+   var currentArgs = arguments;
+
+    // TIP: We'll return a new function that delegates to the old one, but only
+    // if it hasn't been called before.
+    return function() {
+
+      if (!alreadyCalled){
+        currentArgs = arguments;
+      }
+
+      var equalArguments = function(args){
+            if (args.constructor === Object){
+              for (var key in args){
+                if (args[key] === arguments[key][key]){      
+                  return true;
+                }
+              }
+            } else if (args.length !== arguments.length){
+             return false;
+           } else {
+             for (var i = 0; i < args.length; i++){
+               if (args[i] !== arguments[i]){
+                 return false;
+               }
+             }
+             return true;
+           }
+         };
+         
+         //var currentArgs = arguments;
+         var eqArgs = equalArguments(currentArgs);
+          
+          if (alreadyCalled && eqArgs){
+             console.log('All congruent');
+     //        result = func.apply(this, arguments);
+     //       return result;
+          } else if (alreadyCalled && !eqArgs){
+              console.log('Its been called before');
+              result = func.apply(this, arguments);
+              return result;
+            } else if (!alreadyCalled || !eqArgs) {
+              // TIP: .apply(this, arguments) is the standard way to pass on all of the
+              // infromation from one function call to another.
+              result = func.apply(this, arguments);
+              alreadyCalled = true;
+              currentArgs = arguments;
+              return result;
+            }   
+          };
+        };
 
   // Delays a function for the given number of milliseconds, and then calls
   // it with the arguments supplied.
