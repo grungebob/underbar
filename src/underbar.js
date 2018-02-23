@@ -429,21 +429,74 @@
   // _.memoize should return a function that, when called, will check if it has
   // already computed the result for the given argument and return that value
   // instead if possible.
+
+  // if function and same argument - should be returned but with no running of the function, but rather returning the stored result
+
   _.memoize = function(func) {
     
 
-   var alreadyCalled = false;
-   var result;
-   var currentArgs = arguments;
+
+   var storage = {}
+//   var currentArgs = arguments;
 
     // TIP: We'll return a new function that delegates to the old one, but only
     // if it hasn't been called before.
-    return function() {
 
-      if (!alreadyCalled){
-        currentArgs = arguments;
-      }
+    
 
+    // WHAT GOES IN OR WHAT GOES OUT OF HERE IS IMPORTANT
+    // ...args -taking anything past here and put it into a array "args"
+    // if args1, args2, ... args
+    // all arguments after 1 & 2, would be in a single array "args"
+
+    return function(...args) {
+      // Object: 
+      var stringArgs = JSON.stringify(args);
+      console.log(stringArgs);
+ 
+      if (storage.hasOwnProperty(stringArgs)){
+          return storage[stringArgs];
+        } else {
+          storage[stringArgs] = func.apply(this, arguments);
+          console.log(storage[stringArgs]);
+          return storage[stringArgs];
+        }
+    };
+  };
+      
+        
+
+        // individual line: storage[JSON.stringify(args)] = result;
+
+
+        // Running conditionals on storage
+        // CHecking for if strigified arguments within the function match one of they keys in storage
+        // if yes, return existing result
+        // if no, run this.apply on the function and item/current arguments
+        // update storage before returning
+
+
+
+
+
+        //outer portion of the function - the function itself 
+
+        //: [[1, 2], [3, 4], [[1,2], [7, 8]]],
+        // result: [3, 7, 18]
+        //Check for congruent arrays - Have to look at index of current arguments to see if they result
+        // Array cannot be key, but getting closer
+        // Getting arrays as object keys
+        // how to get arguments to be reliable keys
+        // normally strings
+        // the function could return anything; results not bettern than using arguments
+
+        // arguments: results
+
+        
+
+/*
+      var eqArgs = false;
+      
       var equalArguments = function(args){
             if (args.constructor === Object){
               for (var key in args){
@@ -458,18 +511,23 @@
                if (args[i] !== arguments[i]){
                  return false;
                }
-             }
+             } else{
              return true;
            }
+           }
          };
-         
+
+      if (!alreadyCalled){
+        currentArgs = arguments;
+      } else {
+        eqArgs = equalArguments(currentArgs);
+      }        
          //var currentArgs = arguments;
-         var eqArgs = equalArguments(currentArgs);
           
           if (alreadyCalled && eqArgs){
              console.log('All congruent');
-     //        result = func.apply(this, arguments);
-     //       return result;
+     //       result = func.apply(this, arguments);
+             return result;
           } else if (alreadyCalled && !eqArgs){
               console.log('Its been called before');
               result = func.apply(this, arguments);
@@ -481,9 +539,10 @@
               alreadyCalled = true;
               currentArgs = arguments;
               return result;
-            }   
-          };
-        };
+            }
+
+      */   
+  
 
   // Delays a function for the given number of milliseconds, and then calls
   // it with the arguments supplied.
