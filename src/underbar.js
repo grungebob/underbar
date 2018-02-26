@@ -578,7 +578,31 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    var newArr = [];
+    function inArray(number, arr){
+      for (var i = 0; i < arr.length; i ++){
+          if (arr[i] === number){
+            return true;
+          }
+        }
+        return false;
+    }
+    for (var i = array.length; i > 0; i--){
+      var index = Math.floor(Math.random() * i);
+      console.log(index);
+      var exist = inArray(array[index], newArr);
+      if (exist === true){
+        index = Math.floor(Math.random() * i);
+        console.log(array[index]);
+        console.log(exist);
+        newArr.push(array[index]);
+      }
+      if (exist === false){
+        newArr.push(array[index]);
+      }
   };
+  return newArr;
+}
 
 
   /**
