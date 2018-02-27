@@ -579,6 +579,21 @@
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
     var newArr = [];
+    var shuffledIndex = [];
+    
+
+    while (shuffledIndex.length !== array.length){
+      var temp = Math.floor(Math.random() * (array.length + 1));
+      if (!shuffledIndex.includes(temp)){
+        shuffledIndex.push(temp);
+      }
+    }
+    for (var i = 0; i < shuffledIndex.length; i++){
+      newArr[shuffledIndex[i]] = array[i];
+    }
+    return newArr;
+    /*
+    My old code:
     function inArray(number, arr){
       for (var i = 0; i < arr.length; i ++){
           if (arr[i] === number){
@@ -602,6 +617,7 @@
       }
   };
   return newArr;
+  */
 }
 
 
